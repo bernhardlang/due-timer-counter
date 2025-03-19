@@ -1,0 +1,29 @@
+{
+    "name": "due-timer-counter",
+    "version": "1.0.0",
+    "description": "Using the counters of the Arduino Due",
+    "keywords": "timer, counter, delay, Arduino Due",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/bernhardlang/due-timer-counter.git"
+    },
+    "authors":
+    [
+        {
+            "name": "Bernhard Lang",
+            "email": "bernhard.lang@gmx.ch",
+            "url": "www.bernhard-lang.net",
+            "maintainer": true
+        },
+        {
+            "name": "Dominique Lovy"
+        }
+    ],
+    "licence": "GPL2",
+    "homepage": "http://nowhere.x",
+    "dependencies": {
+    },
+    "frameworks": "arduino",
+    "platforms": "atmelsam"
+}
