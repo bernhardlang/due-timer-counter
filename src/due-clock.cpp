@@ -79,6 +79,7 @@ c_due_clock &c_due_clock::set_frequency(double new_frequency) {
 
   if (mode_bits & quad)
     new_frequency *= 2.0;
+
   // configure clock source and conditions
   cmr_clock_bits = TC_CMR_WAVE | TC_CMR_WAVSEL_UP_RC;
   freqlim = (double)VARIANT_MCK/2/0xffffffffUL;
