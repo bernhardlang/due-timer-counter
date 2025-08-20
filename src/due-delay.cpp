@@ -1,6 +1,6 @@
 /* due-delay.cpp
  *
- * Copyright (C) 2018-2024 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2025 Bernhard Lang, www.bernhard-lang.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -114,18 +114,26 @@ c_due_delay &c_due_delay::attach_pulse_interrupt(irq_select_t irq,
   return *this;
 }
 
-c_due_delay &c_due_delay::start(void) {
+c_due_delay &c_due_delay::start(bool external_trigger) {
   if (used) {
     enable(true);
-    enable_external_event(true);
-    started = true;
+    if (external_trigger) {
+      enable_external_event(true);
+      started = true;
+    }
     //-->>p_channel()->TC_IER = TC_IER_CPCS | TC_IER_ETRGS;
   }
   return *this;
 }
 
+c_due_delay &c_due_delay::trigger(void) {
+    c_due_timer_counter::start();
+  return *this;
+}
+
 c_due_delay &c_due_delay::stop(void) {
-  enable_external_event(false);
+  if (external_events_enabled())
+    enable_external_event(false);
   c_due_clock::stop();
   return *this;
 }
@@ -142,13 +150,9 @@ void c_due_delay::irq_handler(uint32_t status) {
 
   // disable external triggering after the first shot, unless retriggering
   if ((status & TC_SR_ETRGS) && !retrigger) {
-    enable_external_event(false);
+    if (external_events_enabled())
+      enable_external_event(false);
     irq_status = status;
-  }
-
-  // act on C register compare
-  if ((status & TC_SR_CPCS) && !retrigger) {
-    p_channel()->TC_IDR = TC_IDR_CPCS;
   }
 
   c_due_timer_counter::irq_handler(status);

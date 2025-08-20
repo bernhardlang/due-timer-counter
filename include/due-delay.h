@@ -1,7 +1,7 @@
 /*
  * due-delay.h
  *
- * Copyright (C) 2018-2022 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2025 Bernhard Lang, www.bernhard-lang.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +78,8 @@ class c_due_delay: public c_due_clock {
 
   c_due_clock &set_frequency(double frequency);
   c_due_delay &set_retrigger(bool);
-  c_due_delay &start(void);
+  c_due_delay &start(bool external_trigger);
+  c_due_delay &trigger(void);
   c_due_delay &stop(void);
 
 #ifdef DEBUG_DUE_TIMER_COUNTER
