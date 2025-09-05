@@ -74,7 +74,8 @@ uint32_t c_due_timer_counter::qd_irq_masks[NUM_TIMER_BLOCKS];
 
 c_due_timer_counter::c_due_timer_counter(timer_no_t timer_no/*timer1-9*/)
   : _timer_no(timer_no), td(&timer_counter[timer_no]), used(false),
-    started(false), tioab_pin_used(false) {
+    external_trigger_interrupt_disabled(false), started(false),
+    tioab_pin_used(false) {
 }
 
 int8_t c_due_timer_counter::begin(uint8_t use_tioab) {
@@ -187,6 +188,7 @@ c_due_timer_counter &c_due_timer_counter::start(void) {
   if (used) {
     enable(true);
     started = true;
+    external_trigger_interrupt_disabled = false;
     p_channel()->TC_CCR = TC_CCR_SWTRG;
   }
 
@@ -195,7 +197,12 @@ c_due_timer_counter &c_due_timer_counter::start(void) {
 
 c_due_timer_counter &c_due_timer_counter::stop(void) {
   enable(false);
-  p_channel()->TC_IDR = TC_IDR_ETRGS;
+  if (p_channel()->TC_IMR & TC_IDR_ETRGS) {
+    external_trigger_interrupt_disabled = true;
+    p_channel()->TC_IDR = TC_IDR_ETRGS;
+  } else {
+    external_trigger_interrupt_disabled = false;
+  }
   started = false;
 
   return *this;
@@ -646,6 +653,7 @@ void c_due_timer_counter::debug(c_command_parser *p) {
   p->respond("TC_SR:  0x%08x", p_channel()->TC_SR);
   p->respond("TC_IMR: 0x%08x", p_channel()->TC_IMR);
   p->respond("TC_CV:  0x%08x", p_channel()->TC_CV);
+  p->respond("icnt: %d, %d", irq_counter1[_timer_no], irq_counter2[_timer_no]);
 }
 
 uint32_t c_due_timer_counter::debug_counter1(void) const {

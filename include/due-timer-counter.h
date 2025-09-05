@@ -385,7 +385,7 @@ class c_due_timer_counter {
   static uint32_t qd_irq_masks[NUM_TIMER_BLOCKS];
   timer_no_t _timer_no;
   const due_timer_descr_t *td;
-  bool used;
+  bool used, external_trigger_interrupt_disabled;
   volatile bool started;
   uint8_t tioab_pin_used;
 #ifdef DEBUG_DUE_TIMER_COUNTER

@@ -9,12 +9,6 @@
 
 #include "due-delay.h"
 
-c_due_delay::c_due_delay(timer_no_t counter_no)
-  : c_due_clock(counter_no), retrigger(false) {
-
-  irq_status = 0xFF000000;
-}
-
 int8_t c_due_delay::begin(uint8_t use_tioab, ext_event_t trigger, edge_t edge) {
   int8_t result;
 
@@ -27,6 +21,24 @@ int8_t c_due_delay::begin(uint8_t use_tioab, ext_event_t trigger, edge_t edge) {
     | TC_CMR_WAVE | TC_CMR_WAVSEL_UP | TC_CMR_WAVE | TC_CMR_CPCSTOP;
   tioa_bits = 0;
   tiob_bits = 0;
+  external_trigger_select = trigger;
+
+  return 0;
+}
+
+int8_t c_due_delay::begin(uint8_t tioab,
+                          c_due_delay::trigger_mode_t trigger_mode,
+                          ext_event_t trigger_select, edge_t edge) {
+  if (trigger_mode == trig_soft)
+    return begin(tioab, EXT_XC0, EDGE_NONE);
+
+  int8_t result = begin(tioab, trigger_select, edge);
+  if (result < 0)
+    return result;
+
+  if (trigger_mode == trig_ext_single_shot)
+    cmr_bits |= TC_CMR_CPCDIS;
+  //enable_external_event(true);
 
   return 0;
 }
@@ -119,15 +131,12 @@ c_due_delay &c_due_delay::start(bool external_trigger) {
     enable(true);
     if (external_trigger) {
       enable_external_event(true);
+      if (external_trigger_interrupt_disabled)
+        p_channel()->TC_IER = TC_IDR_ETRGS;
       started = true;
     }
     //-->>p_channel()->TC_IER = TC_IER_CPCS | TC_IER_ETRGS;
   }
-  return *this;
-}
-
-c_due_delay &c_due_delay::trigger(void) {
-    c_due_timer_counter::start();
   return *this;
 }
 
@@ -137,39 +146,6 @@ c_due_delay &c_due_delay::stop(void) {
   c_due_clock::stop();
   return *this;
 }
-
-c_due_delay &c_due_delay::set_retrigger(bool rt) {
-  retrigger = rt;
-  return *this;
-}
-
-void c_due_delay::irq_handler(uint32_t status) {
-#ifdef DEBUG_DUE_TIMER_COUNTER
-  irq_counter++;
-#endif
-
-  // disable external triggering after the first shot, unless retriggering
-  if ((status & TC_SR_ETRGS) && !retrigger) {
-    if (external_events_enabled())
-      enable_external_event(false);
-    irq_status = status;
-  }
-
-  c_due_timer_counter::irq_handler(status);
-}
-
-#ifdef DEBUG_DUE_TIMER_COUNTER
-#include "command-parser.h"
-
-void c_due_delay::debug(c_command_parser *p) {
-  p->respond("delay irq: %d", irq_counter);
-  p->respond("delay irq status: 0x%08x", irq_status);
-  p->respond("tc irq: %d %d", irq_counter1[timer_no()],
-             irq_counter2[timer_no()]);
-  c_due_timer_counter::debug(p);
-}
-
-#endif // DEBUG_DUE_TIMER_COUNTER
 
 
 /******************************************************************************/
