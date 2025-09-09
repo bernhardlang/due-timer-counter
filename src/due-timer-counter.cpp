@@ -1,6 +1,6 @@
 /* due-timer-counter.cpp
  *
- * Copyright (C) 2018-2024 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2025 Bernhard Lang, www.bernhard-lang.net
  *
  * Based on code by Dominique Lovy, Université de Genève, May 2014, Nov. 2016
  * and on code from DueTimer
