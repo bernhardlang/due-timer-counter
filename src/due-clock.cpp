@@ -19,7 +19,7 @@
 /******************************************************************************/
 
 c_due_clock::c_due_clock(timer_no_t timer_no)
-  : c_due_timer_counter(timer_no), mode_bits(0) {
+  : c_due_timer_counter(timer_no), pulse_count(0), mode_bits(0) {
   effective_frequency = -1;
 
   // default is square wave
@@ -251,8 +251,6 @@ c_due_clock::qd_direction_t c_due_clock::qd_direction(void) const {
 c_due_clock &c_due_clock::start(uint32_t n_pulses) {
   if (n_pulses > 0) { // run counter for n_pulses cycles as configured before
     pulse_count = n_pulses;
-    detach_interrupt();
-    // enable compare C interrupt
     tc()->TC_CHANNEL[channel()].TC_IER = TC_IER_CPCS;
   }
 
@@ -287,8 +285,8 @@ void c_due_clock::irq_handler(uint32_t status) {
   if (pulse_count) {
     if (--pulse_count == 0)
       stop();
-    c_due_timer_counter::irq_handler(status);
   }
+  c_due_timer_counter::irq_handler(status);
 }
 
 double c_due_clock::get_frequency(void) const {

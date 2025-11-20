@@ -1,7 +1,7 @@
 /*
  * due-delay.h
  *
- * Copyright (C) 2018-2022 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2025 Bernhard Lang, www.bernhard-lang.net
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,12 +29,15 @@
 class c_due_delay: public c_due_clock {
  public:
   typedef enum { irq_rca=0, irq_rcb=1, irq_rcc=2 } irq_select_t;
+  typedef enum { trig_soft, trig_ext, trig_ext_single_shot } trigger_mode_t;
 
   //! Initialize internal structure.
-  c_due_delay(timer_no_t counter_no);
+  using c_due_clock::c_due_clock;
 
   //! Claim the hardware and select the internal clock.
   int8_t begin(uint8_t tioab, ext_event_t trigger_select, edge_t edge);
+  int8_t begin(uint8_t tioab, trigger_mode_t trigger_mode,
+               ext_event_t trigger_select=EXT_XC0, edge_t edge=EDGE_NONE);
 
   //! Program delay and pulse length.
   /*! RA and RB are used to generate the first edge on TIOA and TIOB,
@@ -77,29 +80,17 @@ class c_due_delay: public c_due_clock {
                                       void (*isr)(uint32_t status));
 
   c_due_clock &set_frequency(double frequency);
-  c_due_delay &set_retrigger(bool);
-  c_due_delay &start(void);
+  c_due_delay &start(bool external_trigger);
   c_due_delay &stop(void);
 
-#ifdef DEBUG_DUE_TIMER_COUNTER
-  uint32_t debug_counter(void) const { return irq_counter; };
-  uint32_t debug_status(void) const { return irq_status; };
-  void debug(c_command_parser *);
-#endif
-
  private:
-  void irq_handler(uint32_t);
   uint8_t isr_bit(irq_select_t irq) const;
   friend int8_t debug(uint8_t, char **argv, c_command_parser *p);
 
   static const uint32_t delay_scaling;
   uint32_t tioa_bits, tiob_bits;
   ext_event_t external_trigger_select;
-  bool retrigger;
   double inv_mck_div;
-#ifdef DEBUG_DUE_TIMER_COUNTER
-  uint32_t irq_counter, irq_status;
-#endif
 };
 
 extern c_due_delay due_delay1;
