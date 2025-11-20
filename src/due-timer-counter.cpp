@@ -214,6 +214,18 @@ uint32_t c_due_timer_counter::counter_value(void) const {
   return TC_ReadCV(tc(), td->channel);
 }
 
+uint32_t c_due_timer_counter::ra(void) const {
+  return p_channel()->TC_RA;
+}
+
+uint32_t c_due_timer_counter::rb(void) const {
+  return p_channel()->TC_RB;
+}
+
+uint32_t c_due_timer_counter::rc(void) const {
+  return p_channel()->TC_RC;
+}
+
 pin_no_t c_due_timer_counter::tclk_pin_no(void) const {
   return td->tclk.arduino_pin_no;
 }

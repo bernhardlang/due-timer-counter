@@ -1,7 +1,7 @@
 /*
  * due-counter.h - Arduino Due hardware counters
  *
- * Copyright (C) 2018-2022 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2024 Bernhard Lang, www.bernhard-lang.net
  * 
  * Based on code by Dominique Lovy, Université de Genève, May 2014, Nov. 2016
  *
@@ -113,7 +113,10 @@ public:
   //! Sets the position of the counter using a soft offset.
   void set_index_count(int32_t);
 
-  bool direction(void) const;
+  bool counting_forward(void) const;
+  void invert_direction(tioab_t tioab, bool set=true);
+  void swap_ph(bool set=true);
+  void filter(uint8_t max);
 
  private:
   const due_timer_descr_t *ctrd;
