@@ -242,6 +242,12 @@ c_due_clock &c_due_clock::set_quad(qd_direction_t direction, double freq) {
   return *this;
 }
 
+c_due_clock::qd_direction_t c_due_clock::qd_direction(void) const {
+  if ((!(mode_bits & quad)) || (mode_bits & quad_forward))
+    return qd_forward;
+  return qd_backward;
+}
+
 void c_due_clock::start(uint32_t n_pulses) {
   if (n_pulses > 0) { // run counter for n_pulses cycles as configured before
     pulse_count = n_pulses;

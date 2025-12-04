@@ -1,7 +1,7 @@
 /*
  * due-counter.cpp - Arduino Due hardware counters
  *
- * Copyright (C) 2018-2022 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2024 Bernhard Lang, www.bernhard-lang.net
  * 
  * Based on code by Dominique Lovy, Université de Genève, May 2014, Nov. 2016
  *
@@ -242,10 +242,44 @@ void c_due_qd_counter::set_index_count(int32_t index) {
   offset = index - real_actual;  
 }
 
-bool c_due_qd_counter::direction(void) const {
+bool c_due_qd_counter::counting_forward(void) const {
   return tc()->TC_QISR & TC_QISR_DIR;
 }
                                          
+void c_due_qd_counter::invert_direction(tioab_t tioab, bool set) {
+  if (tioab & TIOA) {
+    if (set)
+      tc()->TC_BMR |= TC_BMR_INVA;
+    else
+      tc()->TC_BMR &= ~TC_BMR_INVA;
+  }
+
+  if (tioab & TIOB) {
+    if (set)
+      tc()->TC_BMR |= TC_BMR_INVB;
+    else
+      tc()->TC_BMR &= ~TC_BMR_INVB;
+  }
+}
+
+
+void c_due_qd_counter::swap_ph(bool set) {
+  if (set)
+    tc()->TC_BMR |= TC_BMR_SWAP;
+  else
+    tc()->TC_BMR &= ~TC_BMR_SWAP;
+}
+
+
+void c_due_qd_counter::filter(uint8_t max) {
+  if (max > 0)
+    tc()->TC_BMR
+      = (tc()->TC_BMR & ~TC_BMR_MAXFILT_Msk) | TC_BMR_FILTER
+      | (max <TC_BMR_MAXFILT_Pos);
+  else
+    tc()->TC_BMR &= ~TC_BMR_FILTER;
+}
+
 
 /******************************************************************************/
 /*                               instantiation                                */

@@ -295,6 +295,15 @@ class c_due_timer_counter {
   //! Return the actual counter value.
   uint32_t counter_value(void) const;
 
+  //! Return the ra value.
+  uint32_t ra(void) const;
+
+  //! Return the rb value.
+  uint32_t rb(void) const;
+
+  //! Return the rc value.
+  uint32_t rc(void) const;
+
   //! Return the arduino pin number of the TCLK pin belonging to the channel.
   /*! no_pin is returned in case the line is not routed to an arduino pin. */
   pin_no_t tclk_pin_no(void) const;

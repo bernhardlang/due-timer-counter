@@ -142,6 +142,9 @@ public:
   c_due_clock &set_quad(qd_direction_t direction=qd_forward,
 			double frequency=-1);
 
+  // Return qd direction
+  qd_direction_t qd_direction(void) const;
+
   //! Return RC value corresponding to TIOA/B mode.
   uint32_t get_length(uint8_t tioab) const;
 
