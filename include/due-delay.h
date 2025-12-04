@@ -35,9 +35,9 @@ class c_due_delay: public c_due_clock {
   using c_due_clock::c_due_clock;
 
   //! Claim the hardware and select the internal clock.
-  int8_t begin(uint8_t tioab, ext_event_t trigger_select, edge_t edge);
+  int8_t begin(uint8_t tioab, ext_event_t trigger_event_select, edge_t edge);
   int8_t begin(uint8_t tioab, trigger_mode_t trigger_mode,
-               ext_event_t trigger_select=EXT_XC0, edge_t edge=EDGE_NONE);
+               ext_event_t trigger_event_select=EXT_XC0, edge_t edge=EDGE_NONE);
 
   //! Program delay and pulse length.
   /*! RA and RB are used to generate the first edge on TIOA and TIOB,
@@ -69,7 +69,7 @@ class c_due_delay: public c_due_clock {
   //! Returns the selection of the external trigger.
   /*! \sa begin(). */
 
-  ext_event_t trigger_select(void) const { return external_trigger_select; };
+  ext_event_t event_select(void) const { return external_event_select; };
 
   //! Attaches a callback function to the register compare interrupt.
   /*! The function is called upon the rising or falling edge of either TIOA
@@ -80,8 +80,8 @@ class c_due_delay: public c_due_clock {
                                       void (*isr)(uint32_t status));
 
   c_due_clock &set_frequency(double frequency);
-  c_due_delay &start(bool external_trigger);
-  c_due_delay &stop(void);
+  void start(void) override;
+  void stop(void);
 
  private:
   uint8_t isr_bit(irq_select_t irq) const;
@@ -89,7 +89,7 @@ class c_due_delay: public c_due_clock {
 
   static const uint32_t delay_scaling;
   uint32_t tioa_bits, tiob_bits;
-  ext_event_t external_trigger_select;
+  ext_event_t external_event_select;
   double inv_mck_div;
 };
 

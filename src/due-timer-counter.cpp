@@ -74,12 +74,13 @@ uint32_t c_due_timer_counter::qd_irq_masks[NUM_TIMER_BLOCKS];
 
 c_due_timer_counter::c_due_timer_counter(timer_no_t timer_no/*timer1-9*/)
   : _timer_no(timer_no), td(&timer_counter[timer_no]), used(false),
-    external_trigger_interrupt_disabled(false), started(false),
-    tioab_pin_used(false) {
+    started(false), tioab_pin_used(false) {
 }
 
 int8_t c_due_timer_counter::begin(uint8_t use_tioab) {
-  if (registered_timer_counters[_timer_no]) return -1;
+  if (registered_timer_counters[_timer_no] || used)
+    return -1;
+
   used = true;
   registered_timer_counters[_timer_no] = this;
 
@@ -160,14 +161,6 @@ void c_due_timer_counter::configure(uint32_t channel_mode_bits) {
 c_due_timer_counter &c_due_timer_counter::enable(bool enable) {
   if (used) {
     if (enable) {
-      NVIC_DisableIRQ(td->irq);
-
-      // enable external event interrupt to be able to update the started flag
-      if (p_channel()->TC_CMR & TC_CMR_ENETRG)
-        p_channel()->TC_IER = TC_IER_ETRGS;
-      //else
-      //  p_channel()->TC_IDR = TC_IDR_ETRGS;
-
       NVIC_ClearPendingIRQ(td->irq);
       NVIC_EnableIRQ(td->irq);
       p_channel()->TC_CCR = TC_CCR_CLKEN;
@@ -184,28 +177,21 @@ bool c_due_timer_counter::is_enabled(void) const {
   return p_channel()->TC_SR & TC_SR_CLKSTA;
 }
 
-c_due_timer_counter &c_due_timer_counter::start(void) {
+void c_due_timer_counter::start(void) {
   if (used) {
-    enable(true);
     started = true;
-    external_trigger_interrupt_disabled = false;
+    if ((p_channel()->TC_CMR & (TC_CMR_WAVE | TC_CMR_CPCDIS))
+        == (TC_CMR_WAVE | TC_CMR_CPCDIS))
+      p_channel()->TC_IDR = TC_IER_CPCS;  
+    enable(true);
     p_channel()->TC_CCR = TC_CCR_SWTRG;
   }
-
-  return *this;
 }
 
-c_due_timer_counter &c_due_timer_counter::stop(void) {
+void c_due_timer_counter::stop(void) {
   enable(false);
-  if (p_channel()->TC_IMR & TC_IDR_ETRGS) {
-    external_trigger_interrupt_disabled = true;
-    p_channel()->TC_IDR = TC_IDR_ETRGS;
-  } else {
-    external_trigger_interrupt_disabled = false;
-  }
+  NVIC_ClearPendingIRQ(td->irq);
   started = false;
-
-  return *this;
 }
 
 uint32_t c_due_timer_counter::get_status(void) const {
@@ -405,9 +391,9 @@ void c_due_timer_counter::irq_handler(uint32_t status) {
 #ifdef DEBUG_DUE_TIMER_COUNTER
   irq_counter2[_timer_no]++;
 #endif
-  // keep track of external trigger events
-  if (status & TC_SR_ETRGS)
-    started = true;
+  // timer disabled on CPC?
+  if ((p_channel()->TC_CMR & TC_CMR_CPCDIS) & (status & TC_SR_CPCS))
+    started = false;
 
   if (status & irq_masks[_timer_no]) {
     // handle interrupts with registered callbacks
@@ -635,10 +621,9 @@ void debug_cmr(uint32_t reg_val, c_command_parser *p) {
 
 void c_due_timer_counter::debug(c_command_parser *p) {
   p->respond("=== Timer block %d, channel %d ===", _timer_no / 3, channel());
-  if (is_enabled()) {
-    if (is_started()) p->respond("started");
-    else p->respond("enabled");
-  } else
+  if (is_enabled())
+    p->respond(is_started() ? "started" : "enabled");
+  else
     p->respond("stopped");
 
   p->respond("TC_BMR: 0x%08x", tc()->TC_BMR);
@@ -653,6 +638,7 @@ void c_due_timer_counter::debug(c_command_parser *p) {
   p->respond("TC_SR:  0x%08x", p_channel()->TC_SR);
   p->respond("TC_IMR: 0x%08x", p_channel()->TC_IMR);
   p->respond("TC_CV:  0x%08x", p_channel()->TC_CV);
+  p->respond("TC_IRM: 0x%08x", p_channel()->TC_IMR);
   p->respond("icnt: %d, %d", irq_counter1[_timer_no], irq_counter2[_timer_no]);
 }
 

@@ -9,7 +9,8 @@
 
 #include "due-delay.h"
 
-int8_t c_due_delay::begin(uint8_t use_tioab, ext_event_t trigger, edge_t edge) {
+int8_t c_due_delay::begin(uint8_t use_tioab, ext_event_t trigger_event_select,
+                          edge_t edge) {
   int8_t result;
 
   result = c_due_clock::begin(use_tioab);
@@ -17,28 +18,27 @@ int8_t c_due_delay::begin(uint8_t use_tioab, ext_event_t trigger, edge_t edge) {
     return result;
 
   cmr_bits
-    = (trigger << TC_CMR_EEVT_Pos) | (edge << TC_CMR_EEVTEDG_Pos)
+    = (trigger_event_select << TC_CMR_EEVT_Pos) | (edge << TC_CMR_EEVTEDG_Pos)
     | TC_CMR_WAVE | TC_CMR_WAVSEL_UP | TC_CMR_WAVE | TC_CMR_CPCSTOP;
   tioa_bits = 0;
   tiob_bits = 0;
-  external_trigger_select = trigger;
+  external_event_select = trigger_event_select;
 
   return 0;
 }
 
 int8_t c_due_delay::begin(uint8_t tioab,
                           c_due_delay::trigger_mode_t trigger_mode,
-                          ext_event_t trigger_select, edge_t edge) {
+                          ext_event_t trigger_event_select, edge_t edge) {
   if (trigger_mode == trig_soft)
     return begin(tioab, EXT_XC0, EDGE_NONE);
 
-  int8_t result = begin(tioab, trigger_select, edge);
+  int8_t result = begin(tioab, trigger_event_select, edge);
   if (result < 0)
     return result;
 
   if (trigger_mode == trig_ext_single_shot)
     cmr_bits |= TC_CMR_CPCDIS;
-  //enable_external_event(true);
 
   return 0;
 }
@@ -126,25 +126,20 @@ c_due_delay &c_due_delay::attach_pulse_interrupt(irq_select_t irq,
   return *this;
 }
 
-c_due_delay &c_due_delay::start(bool external_trigger) {
+void c_due_delay::start(void) {
   if (used) {
     enable(true);
-    if (external_trigger) {
+    if (external_event_select) {
       enable_external_event(true);
-      if (external_trigger_interrupt_disabled)
-        p_channel()->TC_IER = TC_IDR_ETRGS;
       started = true;
     }
-    //-->>p_channel()->TC_IER = TC_IER_CPCS | TC_IER_ETRGS;
   }
-  return *this;
 }
 
-c_due_delay &c_due_delay::stop(void) {
+void c_due_delay::stop(void) {
   if (external_events_enabled())
     enable_external_event(false);
   c_due_clock::stop();
-  return *this;
 }
 
 

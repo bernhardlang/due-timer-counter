@@ -210,21 +210,19 @@ int8_t c_due_qd_counter::begin(uint8_t filter) {
   return 0;
 }
 
-c_due_qd_counter &c_due_qd_counter::start(void) {
+void c_due_qd_counter::start(void) {
   if (is_used()) {
     if (with_idx) TC_Start(tc(), 1);
     c_due_timer_counter::start();
   }
   tc()->TC_QISR; // clear status
-  return *this;
 }
 
-c_due_qd_counter &c_due_qd_counter::stop(void) {
+void c_due_qd_counter::stop(void) {
   if (is_used()) {
     if (with_idx) TC_Stop(tc(), 1);
     c_due_timer_counter::stop();
   }
-  return *this;
 }
 
 c_due_qd_counter &c_due_qd_counter::reset(void) {

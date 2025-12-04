@@ -2,7 +2,7 @@
  * due-clock.cpp - Use Arduino Due TC timers/counters as clocks on output pins,
  * respectively as internal interrupt or trigger sources
  *
- * Copyright (C) 2018-2022 Bernhard Lang, www.bernhard-lang.net
+ * Copyright (C) 2018-2025 Bernhard Lang, www.bernhard-lang.net
  *
  * Based on code by Dominique Lovy, Université de Genève, May 2014
  *
@@ -242,15 +242,13 @@ c_due_clock &c_due_clock::set_quad(qd_direction_t direction, double freq) {
   return *this;
 }
 
-c_due_clock &c_due_clock::start(uint32_t n_pulses) {
+void c_due_clock::start(uint32_t n_pulses) {
   if (n_pulses > 0) { // run counter for n_pulses cycles as configured before
     pulse_count = n_pulses;
     tc()->TC_CHANNEL[channel()].TC_IER = TC_IER_CPCS;
   }
 
   c_due_timer_counter::start();
-
-  return *this;
 }
 
 void c_due_clock::update_registers(void) {

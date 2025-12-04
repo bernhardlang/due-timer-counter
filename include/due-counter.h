@@ -98,10 +98,10 @@ public:
   int8_t begin(uint8_t filter=0xFF);
 
   //! Starts the QD counter if it is used and clears its status.
-  c_due_qd_counter &start(void);
+  void start(void) override;
 
   //! Stops the QD counter.
-  c_due_qd_counter &stop(void);
+  void stop(void);
 
   //! Reset the counter.
   /*! The offset is set to zero. */

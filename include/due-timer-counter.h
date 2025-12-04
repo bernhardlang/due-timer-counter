@@ -216,14 +216,14 @@ class c_due_timer_counter {
       The method returns false if the timer-counter unit has not been registered
       calling begin() or when the timer-counter has already been started.
   */
-  c_due_timer_counter &start(void);
+  virtual void start(void);
 
   //! Stop the timer channel.
   /*! Interrupts are disabled.
       The method does nothing if the timer-counter unit has not been registered
       calling begin().
   */
-  c_due_timer_counter &stop(void);
+  void stop(void);
 
   //! Trigger the timer to start counting from zero.
   c_due_timer_counter &trigger(void);
@@ -385,7 +385,7 @@ class c_due_timer_counter {
   static uint32_t qd_irq_masks[NUM_TIMER_BLOCKS];
   timer_no_t _timer_no;
   const due_timer_descr_t *td;
-  bool used, external_trigger_interrupt_disabled;
+  bool used;
   volatile bool started;
   uint8_t tioab_pin_used;
 #ifdef DEBUG_DUE_TIMER_COUNTER

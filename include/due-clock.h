@@ -153,7 +153,8 @@ public:
       Any interrupt handler previously attached to the timer-counter channel is
       detached in that mode.
    */
-  c_due_clock &start(uint32_t n_pulses=0);
+  void start(uint32_t n_pulses=0);
+  //void start(void) override;
 
   //! Return the number of pulses until the timer will stop.
   /*! A zero value indicates that the counter has to be stopped manually.
